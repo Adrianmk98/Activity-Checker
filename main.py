@@ -8,9 +8,9 @@ import threading
 
 # Set up Reddit API connection
 reddit = praw.Reddit(
-    client_id='hlrWNJn-DKPfQKiitdV1qw',
-    client_secret='BOtKuEcl0bOohsuPXgGgD5UREAourQ',
-    user_agent='script:activitycheck:v1.0 (by /u/Radiant-Will793)'
+    client_id='X',
+    client_secret='X',
+    user_agent='X'
 )
 
 # List of specific flairs to check in cmhocpress
