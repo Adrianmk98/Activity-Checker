@@ -13,7 +13,7 @@ reddit = praw.Reddit(
     user_agent='X'
 )
 
-# List of specific flairs to check in cmhocpress
+# List of specific flairs to check in designated subreddit
 TARGET_FLAIRS = [
     "⚔️ Question Period",
     "2nd Reading",
@@ -44,8 +44,7 @@ def load_usernames():
 # Function to check if a user has commented in the specific subreddits during the time period
 # and if the post the comment was made on has one of the specified flairs for cmhocpress
 def check_comments():
-    subreddit1 = "cmhoc"
-    subreddit2 = "cmhochouse"
+    subreddit = "cmhoc"
 
     result_textbox.delete(0, tk.END)  # Clear previous results
     details_textbox.delete(1.0, tk.END)  # Clear previous details
@@ -65,35 +64,30 @@ def check_comments():
                 comments = user.comments.new(limit=None)
 
                 found_in_subreddits = {
-                    subreddit1: False,
-                    subreddit2: False
+                    subreddit: False,
                 }
 
                 # Collect details for display in second textbox
                 user_comment_details[username] = []
 
                 for comment in comments:
-                    if comment.subreddit.display_name in [subreddit1, subreddit2]:
+                    if comment.subreddit.display_name in [subreddit]:
                         if start_time <= comment.created_utc <= end_time:
                             # Build comment detail string
                             comment_time = datetime.utcfromtimestamp(comment.created_utc).strftime('%Y-%m-%d %H:%M:%S')
                             comment_link = f"https://www.reddit.com{comment.permalink}"
                             comment_detail = f"Subreddit: {comment.subreddit.display_name}, Time: {comment_time}\nLink: {comment_link}\n"
 
-                            if comment.subreddit.display_name == subreddit1:
+                            if comment.subreddit.display_name == subreddit:
                                 # Check flair only for cmhocpress
                                 flair = comment.submission.link_flair_text
                                 if flair in TARGET_FLAIRS:
-                                    found_in_subreddits[subreddit1] = True
+                                    found_in_subreddits[subreddit] = True
                                     comment_detail += f"Flair: {flair}\n"
                                     user_comment_details[username].append(comment_detail)
-                            elif comment.subreddit.display_name == subreddit2:
-                                # Accept all comments from cmhochouse
-                                found_in_subreddits[subreddit2] = True
-                                user_comment_details[username].append(comment_detail)
 
                 # Color-coding based on whether comments were found
-                if found_in_subreddits[subreddit1] or found_in_subreddits[subreddit2]:
+                if found_in_subreddits[subreddit]:
                     result_textbox.insert(tk.END, f"{username} - Comments found\n")
                     result_textbox.itemconfig(tk.END, {'fg': 'green'})
                 else:
@@ -130,11 +124,9 @@ def display_user_details(event):
                 details_textbox.insert(tk.END, detail + "\n")
 
 
-# GUI setup
 root = tk.Tk()
 root.title("")
 
-# Date input
 tk.Label(root, text="Start Date:").grid(row=0, column=0, padx=10, pady=5)
 calendar_start = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2)
 calendar_start.grid(row=0, column=1, padx=10, pady=5)
@@ -143,18 +135,14 @@ tk.Label(root, text="End Date:").grid(row=1, column=0, padx=10, pady=5)
 calendar_end = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2)
 calendar_end.grid(row=1, column=1, padx=10, pady=5)
 
-# Check button
 check_button = ttk.Button(root, text="Check Comments", command=run_check_comments)
 check_button.grid(row=2, column=0, columnspan=2, pady=10)
 
-# Result display using Listbox for clickable usernames
 result_textbox = tk.Listbox(root, width=50, height=15)
 result_textbox.grid(row=3, column=0, columnspan=2, pady=10)
 result_textbox.bind('<<ListboxSelect>>', display_user_details)  # Bind click event
 
-# Detailed comment display in second Text widget
 details_textbox = tk.Text(root, width=60, height=15)
 details_textbox.grid(row=4, column=0, columnspan=2, pady=10)
 
-# Start the GUI loop
 root.mainloop()
